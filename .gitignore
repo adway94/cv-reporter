@@ -11,3 +11,6 @@ wheels/
 
 # Environment variables (never commit real credentials)
 .env
+
+# Deployment-specific (systemd, k3s, etc.)
+systemd/
