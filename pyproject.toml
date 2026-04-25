@@ -1,0 +1,28 @@
+[project]
+name = "cv-reporter"
+version = "0.1.0"
+description = "Daily CV analytics reporter via LangChain + NVIDIA + Telegram"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "langchain>=0.3",
+    "langchain-nvidia-ai-endpoints>=0.3",
+    "langchain-core>=0.3",
+    "sqlalchemy>=2.0",
+    "psycopg2-binary>=2.9",
+    "requests>=2.32",
+    "python-dotenv>=1.0",
+]
+
+[project.scripts]
+cv-reporter = "cv_reporter.main:main"
+
+[tool.uv]
+package = true
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/cv_reporter"]

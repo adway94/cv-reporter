@@ -1,0 +1,12 @@
+services:
+  cv-reporter:
+    build: .
+    container_name: cv-reporter
+    env_file: .env
+    networks:
+      - polybot_default
+    restart: "no"
+
+networks:
+  polybot_default:
+    external: true

@@ -1,0 +1,9 @@
+[Unit]
+Description=CV Analytics Reporter
+After=docker.service
+Requires=docker.service
+
+[Service]
+Type=oneshot
+WorkingDirectory=/opt/langchain_proyects/cv-reporter
+ExecStart=/usr/bin/docker compose run --rm cv-reporter
