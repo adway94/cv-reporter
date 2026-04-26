@@ -2,6 +2,7 @@ from datetime import datetime
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 from .models import Visit
+from cv_reporter.config import TIMEZONE
 
 
 def _window_filter(query, since: datetime, until: datetime):
@@ -73,16 +74,17 @@ def get_mobile_ratio(session: Session, since: datetime, until: datetime) -> dict
 
 
 def get_hourly_distribution(session: Session, since: datetime, until: datetime) -> list[dict]:
+    local_ts = func.timezone(TIMEZONE, Visit.timestamp)
     rows = (
         _window_filter(
             session.query(
-                func.extract("hour", Visit.timestamp).label("hour"),
+                func.extract("hour", local_ts).label("hour"),
                 func.count(Visit.id).label("count"),
             ).filter(Visit.is_bot == False),
             since, until,
         )
-        .group_by(func.extract("hour", Visit.timestamp))
-        .order_by(func.extract("hour", Visit.timestamp))
+        .group_by(func.extract("hour", local_ts))
+        .order_by(func.extract("hour", local_ts))
         .all()
     )
     return [{"hour": int(r.hour), "count": r.count} for r in rows]

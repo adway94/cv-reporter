@@ -3,7 +3,7 @@ from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
-from cv_reporter.config import DATABASE_URL, REPORT_HOUR, TIMEZONE
+from cv_reporter.config import DATABASE_URL, TIMEZONE
 from cv_reporter.db.queries import collect_all_stats
 from cv_reporter.report.generator import generate_report
 from cv_reporter.telegram.sender import send_message
@@ -19,10 +19,7 @@ _NO_VISITS_MESSAGES = [
 
 def build_window() -> tuple[datetime, datetime]:
     tz = ZoneInfo(TIMEZONE)
-    now = datetime.now(tz)
-    until = now.replace(hour=REPORT_HOUR, minute=0, second=0, microsecond=0)
-    if until > now:
-        until -= timedelta(days=1)
+    until = datetime.now(tz)
     since = until - timedelta(hours=24)
     return since, until
 

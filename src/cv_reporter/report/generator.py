@@ -1,4 +1,5 @@
 import json
+from datetime import datetime
 from langchain_nvidia_ai_endpoints import ChatNVIDIA
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import StrOutputParser
@@ -40,7 +41,12 @@ def generate_report(stats: dict) -> str:
     chain = prompt | llm | StrOutputParser()
 
     period = stats.get("period", {})
-    period_str = f"{period.get('since', '?')} → {period.get('until', '?')}"
+    since_dt = datetime.fromisoformat(period["since"])
+    until_dt = datetime.fromisoformat(period["until"])
+    since_fmt = since_dt.strftime("%d/%m %H:%M")
+    until_fmt = until_dt.strftime("%d/%m %H:%M")
+    days_label = "cruzando dos días" if since_dt.date() != until_dt.date() else since_dt.strftime("%d/%m")
+    period_str = f"{since_fmt} → {until_fmt} ({days_label})"
 
     return chain.invoke({
         "period": period_str,
