@@ -3,6 +3,7 @@ from datetime import datetime
 from langchain_nvidia_ai_endpoints import ChatNVIDIA
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import StrOutputParser
+from langfuse.langchain import CallbackHandler
 from cv_reporter.config import NVIDIA_API_KEY, NVIDIA_MODEL
 
 _SYSTEM_PROMPT = """Sos un analista de datos que genera informes ejecutivos en español rioplatense.
@@ -39,6 +40,7 @@ def generate_report(stats: dict) -> str:
     ])
 
     chain = prompt | llm | StrOutputParser()
+    langfuse_handler = CallbackHandler()
 
     period = stats.get("period", {})
     since_dt = datetime.fromisoformat(period["since"])
@@ -48,7 +50,7 @@ def generate_report(stats: dict) -> str:
     days_label = "cruzando dos días" if since_dt.date() != until_dt.date() else since_dt.strftime("%d/%m")
     period_str = f"{since_fmt} → {until_fmt} ({days_label})"
 
-    return chain.invoke({
-        "period": period_str,
-        "stats_json": json.dumps(stats, ensure_ascii=False, indent=2),
-    })
+    return chain.invoke(
+        {"period": period_str, "stats_json": json.dumps(stats, ensure_ascii=False, indent=2)},
+        config={"callbacks": [langfuse_handler]},
+    )

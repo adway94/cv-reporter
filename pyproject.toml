@@ -12,6 +12,7 @@ dependencies = [
     "psycopg2-binary>=2.9",
     "requests>=2.32",
     "python-dotenv>=1.0",
+    "langfuse>=4.5.1",
 ]
 
 [project.scripts]
