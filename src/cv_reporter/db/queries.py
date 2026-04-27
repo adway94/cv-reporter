@@ -105,11 +105,38 @@ def get_referrer_breakdown(session: Session, since: datetime, until: datetime) -
     return [{"referrer": r.referrer, "count": r.count} for r in rows]
 
 
+_SUSPICIOUS_PATTERNS = [
+    "%wp-%", "%/wp-%", "%.php%", "%/.env%", "%/.git%",
+    "%phpmyadmin%", "%xmlrpc%", "%/admin%", "%/shell%",
+    "%/cgi-bin%", "%/setup%", "%/install%", "%/config%",
+]
+
+
+def get_suspicious_paths(session: Session, since: datetime, until: datetime) -> list[dict]:
+    from sqlalchemy import or_
+    rows = (
+        _window_filter(
+            session.query(Visit.path, func.count(Visit.id).label("count"))
+            .filter(
+                Visit.is_bot == False,
+                or_(*[Visit.path.ilike(p) for p in _SUSPICIOUS_PATTERNS]),
+            ),
+            since, until,
+        )
+        .group_by(Visit.path)
+        .order_by(func.count(Visit.id).desc())
+        .limit(10)
+        .all()
+    )
+    return [{"path": r.path, "count": r.count} for r in rows]
+
+
 def collect_all_stats(session: Session, since: datetime, until: datetime) -> dict:
     return {
         "period": {"since": since.isoformat(), "until": until.isoformat()},
         "summary": get_daily_stats(session, since, until),
         "top_paths": get_top_paths(session, since, until),
+        "suspicious_paths": get_suspicious_paths(session, since, until),
         "browsers": get_browser_breakdown(session, since, until),
         "os": get_os_breakdown(session, since, until),
         "devices": get_mobile_ratio(session, since, until),
