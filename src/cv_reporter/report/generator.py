@@ -64,7 +64,9 @@ def generate_report(stats: dict) -> str:
     days_label = "cruzando dos días" if since_dt.date() != until_dt.date() else since_dt.strftime("%d/%m")
     period_str = f"{since_fmt} → {until_fmt} ({days_label})"
 
-    return chain.invoke(
+    result = chain.invoke(
         {"period": period_str, "stats_json": json.dumps(stats, ensure_ascii=False, indent=2)},
         config={"callbacks": [langfuse_handler]},
     )
+    langfuse_handler.flush()
+    return result
