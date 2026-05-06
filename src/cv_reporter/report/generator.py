@@ -1,10 +1,11 @@
 import json
 from datetime import datetime
-from langchain_nvidia_ai_endpoints import ChatNVIDIA
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import StrOutputParser
+from langfuse import get_client
 from langfuse.langchain import CallbackHandler
 from cv_reporter.config import NVIDIA_API_KEY, NVIDIA_MODEL
+from cv_reporter.report.llm_registry import create_llm
 
 _SYSTEM_PROMPT = """Sos un analista de datos que genera informes ejecutivos en español rioplatense.
 Recibís estadísticas de visitas de un CV digital personal y generás un resumen claro, conciso y útil.
@@ -40,13 +41,7 @@ Generá el informe diario."""
 
 
 def generate_report(stats: dict) -> str:
-    llm = ChatNVIDIA(
-        model=NVIDIA_MODEL,
-        api_key=NVIDIA_API_KEY,
-        temperature=0.6,
-        top_p=0.9,
-        max_tokens=1024,
-    )
+    llm = create_llm(NVIDIA_MODEL, NVIDIA_API_KEY)
 
     prompt = ChatPromptTemplate.from_messages([
         ("system", _SYSTEM_PROMPT),
@@ -68,5 +63,5 @@ def generate_report(stats: dict) -> str:
         {"period": period_str, "stats_json": json.dumps(stats, ensure_ascii=False, indent=2)},
         config={"callbacks": [langfuse_handler]},
     )
-    langfuse_handler.flush()
+    get_client().flush()
     return result
